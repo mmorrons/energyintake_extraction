@@ -11,32 +11,30 @@ import os
 def extract_statistics(text):
     """
     Estrae i dati dalla sezione "Statistiche" del PDF.
-    Gestisce con robustezza l'assenza di dati.
+    Gestisce con robustezza l'assenza di dati, inclusi i valori negativi.
     (Input text should be normalized: no thousands separators, '.' as decimal)
     """
     statistics = {
-        "Diff_TDEE_kcal": None,
-        "Diff_TDEE_pct": None,
-        "Diff_BMR_kcal": None,
-        "Diff_BMR_pct": None,
-        "Protein_per_kg_actual_g": None,
-        "Kcal_per_kg_actual_kcal": None,
-        "Protein_per_kg_ideal_g": None,
-        "Kcal_per_kg_ideal_kcal": None,
+        "Diff_TDEE_kcal": None, "Diff_TDEE_pct": None,
+        "Diff_BMR_kcal": None, "Diff_BMR_pct": None,
+        "Protein_per_kg_actual_g": None, "Kcal_per_kg_actual_kcal": None,
+        "Protein_per_kg_ideal_g": None, "Kcal_per_kg_ideal_kcal": None,
     }
 
     try:
-        # Patterns updated to expect normalized numbers (e.g., 1234.56)
-        tdee_match = re.search(r"Differenza dal TDEE:\s*([\d.]+)\s*kcal\s*\(([\d.]+)\s*%\)", text)
+        # CORRECTED PATTERN: Added '-?' to allow for an optional negative sign.
+        tdee_match = re.search(r"Differenza dal TDEE:\s*(-?[\d.]+)\s*kcal\s*\((-?[\d.]+)\s*%\)", text)
         if tdee_match:
             statistics["Diff_TDEE_kcal"] = float(tdee_match.group(1))
             statistics["Diff_TDEE_pct"] = float(tdee_match.group(2))
 
-        bmr_match = re.search(r"Differenza dal BMR:\s*([\d.]+)\s*kcal\s*\(([\d.]+)\s*%\)", text)
+        # CORRECTED PATTERN: Added '-?' to allow for an optional negative sign.
+        bmr_match = re.search(r"Differenza dal BMR:\s*(-?[\d.]+)\s*kcal\s*\((-?[\d.]+)\s*%\)", text)
         if bmr_match:
             statistics["Diff_BMR_kcal"] = float(bmr_match.group(1))
             statistics["Diff_BMR_pct"] = float(bmr_match.group(2))
 
+        # These values are expected to be positive
         protein_actual_match = re.search(r"Proteine per kg di peso attuale:\s*([\d.]+)\s*g", text)
         if protein_actual_match:
             statistics["Protein_per_kg_actual_g"] = float(protein_actual_match.group(1))
@@ -57,6 +55,7 @@ def extract_statistics(text):
         st.error(f"Error extracting statistics: {e}")
 
     return statistics
+
 
 
 def extract_all_variables_from_pdf(uploaded_file):
